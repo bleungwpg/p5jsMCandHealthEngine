@@ -1,15 +1,49 @@
-var platforms;
-var maxPlatforms;
-var playerX;
-var playerY;
-var jump;
-var jumpCounter;
-var falling;
-var maxHeight;
+var question1;
+var question2;
+var question3;
+var questionX;
+var questionY;
+var questionLength;
+var questionHeight;
+var health;
 
+var canvasID;
+var locked;
+
+var numberOfAnswers;
 
 function preload()
 {
+	// numberOfAnswers is how many multiple choice the player has
+	numberOfAnswers = 5;
+	questionLength = 126;
+	questionHeight = 40;
+
+	questionX = [100,100,100,100,100];
+	questionY = [50,100,150,200,250];
+
+
+	question1 = new Array(numberOfAnswers);
+	question2 = new Array(numberOfAnswers);
+	question3 = new Array(numberOfAnswers);
+
+	question1[0] = loadImage('https://bleungwpg.github.io/p5jsMCandHealthEngine/images/question1_button_answer.png');
+	question1[1] = loadImage('https://bleungwpg.github.io/p5jsMCandHealthEngine/images/question1_button_answer.png');
+	question1[2] = loadImage('https://bleungwpg.github.io/p5jsMCandHealthEngine/images/question1_button_answer.png');
+	question1[3] = loadImage('https://bleungwpg.github.io/p5jsMCandHealthEngine/images/question1_button_answer.png');
+	question1[4] = loadImage('https://bleungwpg.github.io/p5jsMCandHealthEngine/images/question1_button_answer.png');
+
+	question2[0] = loadImage('https://bleungwpg.github.io/p5jsMCandHealthEngine/images/question2_button_answer.png');
+	question2[1] = loadImage('https://bleungwpg.github.io/p5jsMCandHealthEngine/images/question2_button_answer.png');
+	question2[2] = loadImage('https://bleungwpg.github.io/p5jsMCandHealthEngine/images/question2_button_answer.png');
+	question2[3] = loadImage('https://bleungwpg.github.io/p5jsMCandHealthEngine/images/question2_button_answer.png');
+	question2[4] = loadImage('https://bleungwpg.github.io/p5jsMCandHealthEngine/images/question2_button_answer.png');
+
+	question3[0] = loadImage('https://bleungwpg.github.io/p5jsMCandHealthEngine/images/question3_button_answer.png');
+	question3[1] = loadImage('https://bleungwpg.github.io/p5jsMCandHealthEngine/images/question3_button_answer.png');
+	question3[2] = loadImage('https://bleungwpg.github.io/p5jsMCandHealthEngine/images/question3_button_answer.png');
+	question3[3] = loadImage('https://bleungwpg.github.io/p5jsMCandHealthEngine/images/question3_button_answer.png');
+	question3[4] = loadImage('https://bleungwpg.github.io/p5jsMCandHealthEngine/images/question3_button_answer.png');
 
 }
 
@@ -17,128 +51,111 @@ function setup()
 {
 	createCanvas(800,600);
 
-	playerX = 30;
-	playerY = 180;
-
-	falling = true;
-
-	jump = 0;
-	jumpCounter = 0;
-
-
-	// setup the platforms
-	// --------------------------------------
-	maxPlatforms = 10;
-	platforms = new Array(2);
-	for (var r = 0; r < 2; r++)
-	{
-		platforms[r] = new Array(maxPlatforms);
-	}
-
-	for (var r = 0; r < 2; r++)
-	{
-		for (var c = 0; c < maxPlatforms; c++)
-		{
-			if (r == 0)
-			{
-				// x coordinates
-				platforms[r][c] = c*100;
-			}
-			else
-			{
-				// y coordinates
-				platforms[r][c] = 200;				
-			}
-		}		
-	}
-	// --------------------------------------
-
+	health = 300;
+	canvasID = 0;
+	locked = false;
 }
 
 function draw()
 {
 	background(0,0,0);
 
-
-	// show platform values
-	for (var r = 0; r < 2; r++)
+	if (canvasID == -1)
 	{
-		for (var c = 0; c < maxPlatforms; c++)
-		{
-			text(platforms[r][c],100*r,c*50);
-		}		
-	}	
-
-	// move platforms
-	for (var c = 0; c < maxPlatforms; c++)
+		gameOver();
+	}
+	else if (canvasID == 0)
 	{
-		fill(125,125,125);
-		rect(platforms[0][c],platforms[1][c],75,25);
-
-		// this affects the speed of movement
-		platforms[0][c] -= 2;
-	}		
-
-	// draw player
-	fill(255,0,0);
-	ellipse(playerX,playerY,10,10);
-
-
-	// character jump
-	if (jump == 1)
+		showQuestions(question1);
+		isButtonClicked(0,1)
+	}
+	else if (canvasID == 1)
 	{
-		// up movement
-		if (jumpCounter == 0)
-		{
-			maxHeight = playerY - 50;
-			jumpCounter = 1;
-		}
+		showQuestions(question2);
+		isButtonClicked(0,2)
+	}
+	else if (canvasID == 2)
+	{
+		showQuestions(question3);
+		isButtonClicked(1,0)
+	}
 
-		if (jumpCounter == 1)
-		{
-			// rate of up movement
-			playerY -= 5;
+	showHealth();
 
-			// maximum jump height
-			if (playerY < maxHeight)
+}
+
+// shows your health bar and check if you are dead or not
+function showHealth()
+{
+	fill(0,255,0);
+	rect(300,30,health,25);
+	fill(0,0,0);
+	text(health,300+10,30+20)
+	if (health <= 0)
+	{
+		canvasID = -1;
+	}
+}
+
+// checks what happens when you click on a button
+function isButtonClicked(correct,nextID)
+{
+	var deductHealth = false;
+	if (mouseIsPressed && !locked)
+	{
+		locked = true;
+		for (var i = 0; i < numberOfAnswers; i++)
+		{
+			if (mouseX > questionX[i] && mouseX < questionX[i] + questionLength && mouseY > questionY[i] && mouseY < questionY[i] + questionHeight)
 			{
-				falling = true;
-				jump = 2;
+				if (i == correct)
+				{
+					canvasID = nextID;
+					return 0;
+				}
+				else
+				{
+					deductHealth = true;
+				}
 			}
 		}
-	}
-
-	if (falling == true)
-	{
-		// rate of down movement
-		playerY += 3;
-		playerOnPlatform();	
-	}
-
-}
-
-
-function playerOnPlatform()
-{
-	// check if character is on platform
-	for (var c = 0; c < 10; c++)
-	{
-		if (playerY > platforms[1][c] - 5 && playerY < (platforms[1][c] + 5) && playerX > platforms[0][c] && playerX < platforms[0][c] + 75)
+		if (deductHealth)
 		{
-			playerY = platforms[1][c] - 5;
-			jump = 0;
-			jumpCounter = 0;
-			break;
+			health = health - 50;
 		}
 	}
 }
 
-function keyPressed()
+// handles all game over code
+function gameOver()
 {
-	if (key == 'w' || key == 'W' && jump == 0 && playerY < 210)
+	textSize(32);
+	fill(255,255,255);
+	text("GAME OVER!",50,50);
+	textSize(12);
+}
+
+// shows questions on the screen
+function showQuestions(thequestion)
+{
+	for (var i = 0; i < numberOfAnswers; i++)
 	{
-		jump = 1;
-		falling = false;
+		image(thequestion[i],questionX[i],questionY[i])
 	}
 }
+
+// locked is to prevent HOLDING onto the button
+function mouseReleased()
+{
+	locked = false;
+}
+
+
+
+
+
+
+
+
+
 
